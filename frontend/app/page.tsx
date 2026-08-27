@@ -28,6 +28,8 @@ import SiriVisualizer from "@/components/SiriVisualizer";
 import BeachDroneBackground from "@/components/BeachDroneBackground";
 import TideToneLogo from "@/components/TideToneLogo";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface VoiceOption {
   id: string;
   name: string;
@@ -105,7 +107,7 @@ export default function TideToneStudio() {
 
   const checkHealth = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/health");
+      const res = await fetch(`${API_BASE}/api/health`);
       if (res.ok) setBackendHealthy(true);
       else setBackendHealthy(false);
     } catch {
@@ -115,7 +117,7 @@ export default function TideToneStudio() {
 
   const fetchVoices = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/voices");
+      const res = await fetch(`${API_BASE}/api/voices`);
       if (res.ok) {
         const data = await res.json();
         if (data.prebuilt) setVoices(data.prebuilt);
@@ -175,7 +177,7 @@ export default function TideToneStudio() {
       fd.append("session_id", sessionId);
       fd.append("auto_translate", autoTranslate.toString());
 
-      const res = await fetch("http://localhost:8000/api/tts/generate", {
+      const res = await fetch(`${API_BASE}/api/tts/generate`, {
         method: "POST",
         body: fd,
       });
@@ -183,7 +185,7 @@ export default function TideToneStudio() {
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
-          const fullUrl = `http://localhost:8000${data.download_url}`;
+          const fullUrl = data.download_url.startsWith("http") ? data.download_url : `${API_BASE}${data.download_url}`;
           const currentVoice = voices.find((v) => v.id === voiceId);
           const currentVoiceName = currentVoice?.name || "Aria";
 
@@ -286,7 +288,7 @@ export default function TideToneStudio() {
 
             <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white/[0.35] backdrop-blur-xl rounded-2xl border border-white/60 text-xs font-bold text-[#0A1128] shadow-xs">
               <span className={`w-2.5 h-2.5 rounded-full ${backendHealthy ? "bg-[#81B29A] animate-pulse" : "bg-[#F4A261]"}`} />
-              <span>{backendHealthy ? "Auto-Translator Active" : "Client Engine"}</span>
+              <span>{backendHealthy ? "Server Online" : "Client Engine"}</span>
               <button onClick={() => { checkHealth(); fetchVoices(); }} className="hover:text-[#81B29A] ml-1">
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
