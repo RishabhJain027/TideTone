@@ -29,6 +29,8 @@ import SiriVisualizer from "@/components/SiriVisualizer";
 import BeachDroneBackground from "@/components/BeachDroneBackground";
 import TideToneLogo from "@/components/TideToneLogo";
 
+const PUBLIC_BACKEND = "https://appliances-exotic-held-literature.trycloudflare.com";
+
 interface VoiceOption {
   id: string;
   name: string;
@@ -59,7 +61,7 @@ export default function TideToneStudio() {
   const [pitch, setPitch] = useState<number>(0.0);
   const [autoTranslate, setAutoTranslate] = useState<boolean>(true);
   const [lastSpokenText, setLastSpokenText] = useState<string | null>(null);
-  const [apiBase, setApiBase] = useState<string>("http://localhost:8000");
+  const [apiBase, setApiBase] = useState<string>(PUBLIC_BACKEND);
 
   const [sessionId, setSessionId] = useState<string>("user_default");
 
@@ -85,7 +87,7 @@ export default function TideToneStudio() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [previewingVoice, setPreviewingVoice] = useState<string | null>(null);
-  const [backendHealthy, setBackendHealthy] = useState<boolean | null>(null);
+  const [backendHealthy, setBackendHealthy] = useState<boolean | null>(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -104,11 +106,10 @@ export default function TideToneStudio() {
     setSessionId(sid);
 
     const checkUrl = async () => {
-      const candidates = [
-        "http://localhost:8000",
-        process.env.NEXT_PUBLIC_API_URL,
-        "https://appliances-exotic-held-literature.trycloudflare.com"
-      ].filter(Boolean) as string[];
+      const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+      const candidates = isHttps
+        ? [process.env.NEXT_PUBLIC_API_URL, PUBLIC_BACKEND].filter(Boolean) as string[]
+        : ["http://localhost:8000", process.env.NEXT_PUBLIC_API_URL, PUBLIC_BACKEND].filter(Boolean) as string[];
 
       for (const base of candidates) {
         try {
@@ -178,7 +179,7 @@ export default function TideToneStudio() {
 
     setLoading(true);
     if (customVoiceId) setPreviewingVoice(customVoiceId);
-    setStatusMessage("Synthesizing neural voice...");
+    setStatusMessage("Synthesizing neural speech...");
 
     try {
       const fd = new FormData();
@@ -274,35 +275,35 @@ export default function TideToneStudio() {
     <div className="relative min-h-screen text-[#0A1128] flex flex-col justify-between overflow-x-hidden font-sans selection:bg-[#BEE1E6] selection:text-[#0A1128]">
       <BeachDroneBackground />
 
-      <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto w-full p-3 sm:p-6 lg:p-8">
         {/* Floating Translucent Liquid Glass Header */}
-        <header className="backdrop-blur-2xl bg-white/[0.30] border border-white/60 rounded-3xl p-4 sm:px-7 mb-8 shadow-[0_20px_50px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-all">
-          <div className="flex items-center gap-4">
-            <TideToneLogo className="w-12 h-12 transition-transform hover:scale-105" />
+        <header className="backdrop-blur-2xl bg-white/[0.30] border border-white/60 rounded-3xl p-4 sm:px-7 mb-6 shadow-[0_20px_50px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-all">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <TideToneLogo className="w-10 h-10 sm:w-12 sm:h-12 transition-transform hover:scale-105" />
             <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-2xl font-black tracking-tight text-[#0A1128]">
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#0A1128]">
                   TideTone
                 </h1>
-                <span className="text-[11px] font-extrabold uppercase tracking-wider bg-[#FFB5A7]/40 text-[#8C3A2E] px-3 py-0.5 rounded-full border border-white/70 shadow-xs backdrop-blur-md">
-                  Multilingual AI Studio
+                <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider bg-[#FFB5A7]/40 text-[#8C3A2E] px-2.5 py-0.5 rounded-full border border-white/70 shadow-xs backdrop-blur-md">
+                  Studio AI
                 </span>
               </div>
-              <p className="text-xs text-[#3A506B] font-semibold">
-                Neural Speech Synthesis • 14 Custom Avatars • Liquid Glassmorphism
+              <p className="text-[11px] sm:text-xs text-[#3A506B] font-semibold">
+                Neural Speech Synthesis • 14 Custom Avatars • Translucent Glass
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white/[0.35] backdrop-blur-xl rounded-2xl border border-white/60 text-xs font-mono text-[#0A1128] font-bold shadow-xs">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <div className="flex items-center gap-1 px-3 py-1.5 bg-white/[0.35] backdrop-blur-xl rounded-2xl border border-white/60 text-xs font-mono text-[#0A1128] font-bold shadow-xs">
               <Lock className="w-3.5 h-3.5 text-[#E07A5F]" />
-              <span>Session: <strong className="text-[#E07A5F]">{sessionId.slice(0, 8)}</strong></span>
+              <span>ID: <strong className="text-[#E07A5F]">{sessionId.slice(0, 6)}</strong></span>
             </div>
 
-            <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white/[0.35] backdrop-blur-xl rounded-2xl border border-white/60 text-xs font-bold text-[#0A1128] shadow-xs">
-              <span className={`w-2.5 h-2.5 rounded-full ${backendHealthy ? "bg-[#81B29A] animate-pulse" : "bg-[#F4A261]"}`} />
-              <span>{backendHealthy ? "Engine Ready" : "Local Engine"}</span>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.35] backdrop-blur-xl rounded-2xl border border-white/60 text-xs font-bold text-[#0A1128] shadow-xs">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#81B29A] animate-pulse" />
+              <span>Online</span>
               <button onClick={() => window.location.reload()} className="hover:text-[#81B29A] ml-1">
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
@@ -311,18 +312,18 @@ export default function TideToneStudio() {
         </header>
 
         {/* Studio Workspace */}
-        <main className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
           {/* Left Column: Singularity Shader Stage */}
-          <section className="lg:col-span-6 backdrop-blur-2xl bg-white/[0.28] border border-white/60 rounded-3xl p-6 sm:p-8 flex flex-col items-center relative shadow-[0_24px_60px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)]">
+          <section className="lg:col-span-6 backdrop-blur-2xl bg-white/[0.28] border border-white/60 rounded-3xl p-5 sm:p-8 flex flex-col items-center relative shadow-[0_24px_60px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)]">
             <div className="w-full flex justify-between items-center mb-2 z-10">
               <div className="flex items-center gap-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${isPlaying ? "bg-[#FFB5A7] animate-ping" : "bg-[#BEE1E6]"}`} />
                 <span className="text-xs font-black uppercase tracking-wider text-[#0A1128]">
-                  {isPlaying ? "Black Hole Accretion Disk (Active)" : "Singularity Orb (Standby)"}
+                  {isPlaying ? "Accretion Disk (Active)" : "Singularity Orb (Standby)"}
                 </span>
               </div>
               <span className="text-xs font-mono text-[#3A506B] font-bold bg-white/[0.4] px-2.5 py-0.5 rounded-full border border-white/60 shadow-xs backdrop-blur-md">
-                {isPlaying ? "Live Audio FFT" : "GLSL Quantum Accretion"}
+                {isPlaying ? "Live FFT" : "GLSL Quantum"}
               </span>
             </div>
 
@@ -345,7 +346,7 @@ export default function TideToneStudio() {
               className="hidden"
             />
 
-            {/* Translated Narration Pill */}
+            {/* Translated Narration Subtitle Pill */}
             {lastSpokenText && (
               <div className="w-full mt-3 bg-white/[0.45] backdrop-blur-md border border-white/70 p-3 rounded-2xl z-10 shadow-xs flex items-center gap-2 text-xs">
                 <Languages className="w-4 h-4 text-[#81B29A] shrink-0" />
@@ -356,17 +357,18 @@ export default function TideToneStudio() {
               </div>
             )}
 
-            {/* Translucent Player Bar with Prominent Controls */}
+            {/* Translucent Player Bar with High-Visibility Mobile Download Button */}
             <div className="w-full mt-4 bg-white/[0.35] backdrop-blur-xl border border-white/60 rounded-2xl p-4 space-y-3 z-10 shadow-xs">
               <div className="flex items-center justify-between text-xs font-mono font-bold text-[#0A1128]">
                 <span>
                   {Math.floor(audioCurrentTime)}s / {Math.floor(audioDuration || 0)}s
                 </span>
                 <span className="text-[#81B29A] font-extrabold uppercase tracking-wider">
-                  {audioUrl ? `Speaking as ${selectedVoiceObj.name}` : "Ready to Synthesize"}
+                  {audioUrl ? `Playing: ${selectedVoiceObj.name}` : "Ready to Play"}
                 </span>
               </div>
 
+              {/* Progress Scrub Bar */}
               <div
                 className="w-full bg-white/[0.4] h-3 rounded-full cursor-pointer overflow-hidden border border-white/60 relative shadow-inner"
                 onClick={(e) => {
@@ -384,7 +386,7 @@ export default function TideToneStudio() {
                 />
               </div>
 
-              {/* Play / Pause, Volume Slider & Download Button */}
+              {/* Media Controls Row */}
               <div className="flex items-center gap-2 pt-1 w-full">
                 <button
                   onClick={togglePlayback}
@@ -411,30 +413,24 @@ export default function TideToneStudio() {
                     title="Volume"
                   />
                 </div>
-
-                {audioUrl && (
-                  <a
-                    href={audioUrl}
-                    download="tidetone_voice.mp3"
-                    className="px-3.5 py-3 bg-white/[0.6] hover:bg-white text-[#0A1128] font-extrabold text-xs rounded-2xl border border-white/80 shadow-xs transition flex items-center gap-1.5 backdrop-blur-md active:scale-95"
-                    title="Download audio file"
-                  >
-                    <Download className="w-4 h-4 text-[#E07A5F]" />
-                    <span className="hidden sm:inline">Download</span>
-                  </a>
-                )}
               </div>
 
-              {/* Mobile Download Button */}
-              {audioUrl && (
+              {/* ULTRA-PROMINENT DOWNLOAD BUTTON (ALWAYS VISIBLE WHEN AUDIO READY) */}
+              {audioUrl ? (
                 <a
                   href={audioUrl}
                   download="tidetone_voice.mp3"
-                  className="sm:hidden w-full py-2.5 bg-white/[0.5] hover:bg-white text-[#0A1128] font-extrabold text-xs rounded-xl border border-white/70 shadow-xs transition flex items-center justify-center gap-1.5 backdrop-blur-md mt-2"
+                  className="w-full py-3.5 bg-gradient-to-r from-[#FFB5A7] via-[#FCD5CE] to-[#BEE1E6] hover:brightness-105 text-[#0A1128] font-black text-xs uppercase tracking-wider rounded-2xl border border-white shadow-md transition flex items-center justify-center gap-2 backdrop-blur-md active:scale-98"
+                  title="Download MP3 Audio File"
                 >
-                  <Download className="w-4 h-4 text-[#E07A5F]" />
-                  <span>Download MP3 Audio</span>
+                  <Download className="w-4 h-4 text-[#8C3A2E]" />
+                  <span>📥 Download Generated MP3 Audio</span>
                 </a>
+              ) : (
+                <div className="w-full py-3 bg-white/[0.25] text-[#3A506B] font-bold text-xs rounded-2xl border border-white/40 flex items-center justify-center gap-2">
+                  <Download className="w-4 h-4 text-[#3A506B]/60" />
+                  <span>Generate speech to enable MP3 download</span>
+                </div>
               )}
             </div>
 
@@ -469,9 +465,9 @@ export default function TideToneStudio() {
           </section>
 
           {/* Right Column: Studio Controls */}
-          <section className="lg:col-span-6 backdrop-blur-2xl bg-white/[0.28] border border-white/60 rounded-3xl p-6 sm:p-8 space-y-5 shadow-[0_24px_60px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)]">
+          <section className="lg:col-span-6 backdrop-blur-2xl bg-white/[0.28] border border-white/60 rounded-3xl p-5 sm:p-8 space-y-5 shadow-[0_24px_60px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)]">
             <div className="flex items-center justify-between border-b border-white/50 pb-3">
-              <h2 className="text-lg font-black text-[#0A1128] flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-black text-[#0A1128] flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-[#E07A5F]" />
                 Neural Speech Synthesizer
               </h2>
@@ -491,7 +487,7 @@ export default function TideToneStudio() {
             </div>
 
             {statusMessage && (
-              <div className="bg-[#BEE1E6]/80 backdrop-blur-md border border-white/80 p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold text-[#0A1128] shadow-xs">
+              <div className="bg-[#BEE1E6]/80 backdrop-blur-md border border-white/80 p-3 rounded-2xl flex items-center justify-between text-xs font-bold text-[#0A1128] shadow-xs">
                 <span>{statusMessage}</span>
                 <button onClick={() => setStatusMessage(null)} className="text-[#0A1128] font-black ml-2">
                   ✕
@@ -642,21 +638,27 @@ export default function TideToneStudio() {
                       key={item.id}
                       className="flex items-center justify-between bg-white/[0.35] backdrop-blur-xl p-3 rounded-2xl border border-white/60 text-xs shadow-xs"
                     >
-                      <div className="truncate max-w-[220px]">
+                      <div className="truncate max-w-[200px] sm:max-w-[240px]">
                         <span className="font-black text-[#E07A5F] mr-2">{item.voiceName}</span>
                         <span className="text-[#0A1128] font-medium truncate">{item.spokenText || item.text}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => playDirectly(item.audioUrl)}
-                          className="p-1 hover:text-[#E07A5F] text-[#0A1128] font-black flex items-center gap-1"
-                          title="Play"
+                          className="p-1.5 hover:text-[#E07A5F] text-[#0A1128] font-black flex items-center gap-1 bg-white/[0.5] rounded-xl border border-white/60"
+                          title="Play Take"
                         >
                           <Play className="w-3.5 h-3.5 fill-current" />
                           <span>Play</span>
                         </button>
-                        <a href={item.audioUrl} download="tidetone_voice.mp3" className="p-1 hover:text-[#E07A5F] text-[#3A506B]">
+                        <a
+                          href={item.audioUrl}
+                          download="tidetone_voice.mp3"
+                          className="p-1.5 hover:text-[#E07A5F] text-[#E07A5F] font-bold flex items-center gap-1 bg-white/[0.5] rounded-xl border border-white/60"
+                          title="Download Take"
+                        >
                           <Download className="w-3.5 h-3.5" />
+                          <span>MP3</span>
                         </a>
                       </div>
                     </div>
