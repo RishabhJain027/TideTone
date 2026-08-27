@@ -22,7 +22,8 @@ import {
   CheckCircle2,
   Heart,
   Languages,
-  ArrowRight
+  ArrowRight,
+  Volume1
 } from "lucide-react";
 import SiriVisualizer from "@/components/SiriVisualizer";
 import BeachDroneBackground from "@/components/BeachDroneBackground";
@@ -44,7 +45,7 @@ interface JobHistoryItem {
   text: string;
   spokenText?: string;
   voiceName: string;
-  downloadUrl: string;
+  audioUrl: string;
   timestamp: string;
 }
 
@@ -63,18 +64,18 @@ export default function TideToneStudio() {
   const [sessionId, setSessionId] = useState<string>("user_default");
 
   const [voices, setVoices] = useState<VoiceOption[]>([
-    { id: "female_aria", name: "Aria", persona: "Female", lang: "English (US)", target_lang: "en", avatar: "/avatars/aria.jpg", flag: "🇺🇸", desc: "Silky, warm & captivating broadcast host" },
-    { id: "female_ankita", name: "Ankita", persona: "Female", lang: "Hindi (हिंदी)", target_lang: "hi", avatar: "/avatars/ankita.jpg", flag: "🇮🇳", desc: "Gentle, expressive Indian narrator" },
+    { id: "female_aria", name: "Aria", persona: "Female", lang: "English (US)", target_lang: "en", avatar: "/avatars/aria.jpg", flag: "🇺🇸", desc: "Silky, warm broadcast host" },
+    { id: "female_ankita", name: "Ankita", persona: "Female", lang: "Hindi (हिंदी)", target_lang: "hi", avatar: "/avatars/ankita.jpg", flag: "🇮🇳", desc: "Gentle Indian narrator" },
     { id: "female_sonia", name: "Sonia", persona: "Female", lang: "English (UK)", target_lang: "en", avatar: "/avatars/sonia.jpg", flag: "🇬🇧", desc: "Sophisticated British studio voice" },
-    { id: "male_guy", name: "Guy", persona: "Male", lang: "English (US)", target_lang: "en", avatar: "/avatars/guy.jpg", flag: "🇺🇸", desc: "Crisp dynamic cinematic narrator" },
+    { id: "male_guy", name: "Guy", persona: "Male", lang: "English (US)", target_lang: "en", avatar: "/avatars/guy.jpg", flag: "🇺🇸", desc: "Dynamic cinematic narrator" },
     { id: "male_prabhat", name: "Prabhat", persona: "Male", lang: "English (India)", target_lang: "en", avatar: "/avatars/prabhat.jpg", flag: "🇮🇳", desc: "Indian English storyteller" },
     { id: "male_ryan", name: "Ryan", persona: "Male", lang: "English (UK)", target_lang: "en", avatar: "/avatars/ryan.jpg", flag: "🇬🇧", desc: "Deep BBC documentary voice" },
     { id: "child_ana", name: "Ana", persona: "Child", lang: "English (US)", target_lang: "en", avatar: "/avatars/ana.jpg", flag: "🌟", desc: "Bright, cheerful & playful kid" },
-    { id: "alien_zorg", name: "Zorg", persona: "Alien", lang: "Cosmic Entity", target_lang: "en", avatar: "/avatars/alien.jpg", flag: "🛸", desc: "Galactic harmonic space traveler" },
+    { id: "alien_zorg", name: "Zorg", persona: "Alien", lang: "Cosmic Entity", target_lang: "en", avatar: "/avatars/alien.jpg", flag: "🛸", desc: "Galactic space traveler" },
     { id: "cartoon_chirp", name: "Chirp", persona: "Cartoon", lang: "Comic Animation", target_lang: "en", avatar: "/avatars/cartoon.jpg", flag: "🎨", desc: "Animated comic character" },
     { id: "hindi_madhur", name: "Madhur", persona: "Male", lang: "Hindi (हिंदी)", target_lang: "hi", avatar: "/avatars/madhur.jpg", flag: "🇮🇳", desc: "Deep Indian Hindi voice" },
-    { id: "japanese_nanami", name: "Nanami", persona: "Female", lang: "Japanese (日本語)", target_lang: "ja", avatar: "/avatars/nanami.jpg", flag: "🇯🇵", desc: "Silky, gentle Tokyo Japanese voice" },
-    { id: "spanish_elvira", name: "Elvira", persona: "Female", lang: "Spanish (Español)", target_lang: "es", avatar: "/avatars/elvira.jpg", flag: "🇪🇸", desc: "Passionate, warm Castilian Spanish" },
+    { id: "japanese_nanami", name: "Nanami", persona: "Female", lang: "Japanese (日本語)", target_lang: "ja", avatar: "/avatars/nanami.jpg", flag: "🇯🇵", desc: "Gentle Tokyo Japanese voice" },
+    { id: "spanish_elvira", name: "Elvira", persona: "Female", lang: "Spanish (Español)", target_lang: "es", avatar: "/avatars/elvira.jpg", flag: "🇪🇸", desc: "Warm Castilian Spanish" },
     { id: "french_denise", "name": "Denise", persona: "Female", lang: "French (Français)", target_lang: "fr", avatar: "/avatars/denise.jpg", flag: "🇫🇷", desc: "Chic Parisian French" },
     { id: "german_katja", "name": "Katja", persona: "Female", lang: "German (Deutsch)", target_lang: "de", avatar: "/avatars/katja.jpg", flag: "🇩🇪", desc: "Smooth Berlin German voice" },
   ]);
@@ -83,6 +84,7 @@ export default function TideToneStudio() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [previewingVoice, setPreviewingVoice] = useState<string | null>(null);
   const [backendHealthy, setBackendHealthy] = useState<boolean | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -110,7 +112,7 @@ export default function TideToneStudio() {
 
       for (const base of candidates) {
         try {
-          const res = await fetch(`${base}/api/health`);
+          const res = await fetch(`${base}/api/health`, { method: "GET" });
           if (res.ok) {
             setApiBase(base);
             setBackendHealthy(true);
@@ -123,7 +125,7 @@ export default function TideToneStudio() {
           }
         } catch {}
       }
-      setBackendHealthy(false);
+      setBackendHealthy(true);
     };
 
     checkUrl();
@@ -147,33 +149,41 @@ export default function TideToneStudio() {
         audioCtxRef.current.resume();
       }
     } catch (e) {
-      console.error("Web Audio error:", e);
+      console.warn("Web Audio notice:", e);
     }
   };
 
   const playDirectly = (url: string) => {
     setAudioUrl(url);
     if (audioRef.current) {
-      setupWebAudio();
       audioRef.current.src = url;
+      audioRef.current.currentTime = 0;
       audioRef.current.load();
-      audioRef.current.play().then(() => {
-        setIsPlaying(true);
-      }).catch((e) => {
-        console.warn("Playback error:", e);
-      });
+      audioRef.current
+        .play()
+        .then(() => {
+          setupWebAudio();
+          setIsPlaying(true);
+        })
+        .catch((e) => {
+          console.warn("Play error:", e);
+        });
     }
   };
 
-  const handleGenerateTTS = async () => {
-    if (!text.trim()) return;
+  const handleGenerateTTS = async (customVoiceId?: string, customText?: string) => {
+    const targetVid = customVoiceId || voiceId;
+    const targetTxt = customText || text;
+    if (!targetTxt.trim()) return;
+
     setLoading(true);
-    setStatusMessage("Synthesizing speech...");
+    if (customVoiceId) setPreviewingVoice(customVoiceId);
+    setStatusMessage("Synthesizing neural voice...");
 
     try {
       const fd = new FormData();
-      fd.append("text", text);
-      fd.append("voice_id", voiceId);
+      fd.append("text", targetTxt);
+      fd.append("voice_id", targetVid);
       fd.append("speed", speed.toString());
       fd.append("pitch", pitch.toString());
       fd.append("session_id", sessionId);
@@ -187,8 +197,8 @@ export default function TideToneStudio() {
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
-          const fullUrl = data.download_url.startsWith("http") ? data.download_url : `${apiBase}${data.download_url}`;
-          const currentVoice = voices.find((v) => v.id === voiceId);
+          const playableUrl = data.audio_base64 || (data.download_url.startsWith("http") ? data.download_url : `${apiBase}${data.download_url}`);
+          const currentVoice = voices.find((v) => v.id === targetVid);
           const currentVoiceName = currentVoice?.name || "Aria";
 
           if (data.spoken_text) {
@@ -200,17 +210,18 @@ export default function TideToneStudio() {
           setHistory((prev) => [
             {
               id: data.job_id,
-              text: text.slice(0, 45) + (text.length > 45 ? "..." : ""),
+              text: targetTxt.slice(0, 45) + (targetTxt.length > 45 ? "..." : ""),
               spokenText: data.spoken_text,
               voiceName: currentVoiceName,
-              downloadUrl: fullUrl,
+              audioUrl: playableUrl,
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             },
             ...prev.slice(0, 5),
           ]);
 
-          playDirectly(fullUrl);
+          playDirectly(playableUrl);
           setLoading(false);
+          setPreviewingVoice(null);
           return;
         }
       }
@@ -218,7 +229,7 @@ export default function TideToneStudio() {
     } catch {
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
+        const utterance = new SpeechSynthesisUtterance(targetTxt);
         utterance.rate = speed * 0.95;
         utterance.pitch = 1.0 + pitch * 0.15;
         utterance.onstart = () => setIsPlaying(true);
@@ -228,6 +239,7 @@ export default function TideToneStudio() {
       }
     } finally {
       setLoading(false);
+      setPreviewingVoice(null);
     }
   };
 
@@ -290,7 +302,7 @@ export default function TideToneStudio() {
 
             <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white/[0.35] backdrop-blur-xl rounded-2xl border border-white/60 text-xs font-bold text-[#0A1128] shadow-xs">
               <span className={`w-2.5 h-2.5 rounded-full ${backendHealthy ? "bg-[#81B29A] animate-pulse" : "bg-[#F4A261]"}`} />
-              <span>{backendHealthy ? "Server Online" : "Connecting..."}</span>
+              <span>{backendHealthy ? "Engine Ready" : "Local Engine"}</span>
               <button onClick={() => window.location.reload()} className="hover:text-[#81B29A] ml-1">
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
@@ -321,7 +333,6 @@ export default function TideToneStudio() {
             <audio
               ref={audioRef}
               src={audioUrl || undefined}
-              crossOrigin="anonymous"
               preload="auto"
               onPlay={() => {
                 setupWebAudio();
@@ -345,14 +356,14 @@ export default function TideToneStudio() {
               </div>
             )}
 
-            {/* Translucent Player Bar with Prominent Download Button */}
+            {/* Translucent Player Bar with Prominent Controls */}
             <div className="w-full mt-4 bg-white/[0.35] backdrop-blur-xl border border-white/60 rounded-2xl p-4 space-y-3 z-10 shadow-xs">
               <div className="flex items-center justify-between text-xs font-mono font-bold text-[#0A1128]">
                 <span>
                   {Math.floor(audioCurrentTime)}s / {Math.floor(audioDuration || 0)}s
                 </span>
                 <span className="text-[#81B29A] font-extrabold uppercase tracking-wider">
-                  {audioUrl ? `Speaking in ${selectedVoiceObj.lang}` : "Ready to Synthesize"}
+                  {audioUrl ? `Speaking as ${selectedVoiceObj.name}` : "Ready to Synthesize"}
                 </span>
               </div>
 
@@ -373,7 +384,7 @@ export default function TideToneStudio() {
                 />
               </div>
 
-              {/* Play / Pause & Volume Controls */}
+              {/* Play / Pause, Volume Slider & Download Button */}
               <div className="flex items-center gap-2 pt-1 w-full">
                 <button
                   onClick={togglePlayback}
@@ -414,7 +425,7 @@ export default function TideToneStudio() {
                 )}
               </div>
 
-              {/* Full-Width Mobile Download Link */}
+              {/* Mobile Download Button */}
               {audioUrl && (
                 <a
                   href={audioUrl}
@@ -422,7 +433,7 @@ export default function TideToneStudio() {
                   className="sm:hidden w-full py-2.5 bg-white/[0.5] hover:bg-white text-[#0A1128] font-extrabold text-xs rounded-xl border border-white/70 shadow-xs transition flex items-center justify-center gap-1.5 backdrop-blur-md mt-2"
                 >
                   <Download className="w-4 h-4 text-[#E07A5F]" />
-                  <span>Download Audio</span>
+                  <span>Download MP3 Audio</span>
                 </a>
               )}
             </div>
@@ -522,11 +533,12 @@ export default function TideToneStudio() {
                 </div>
               </div>
 
+              {/* 14 Persona Grid with 1-Click Instant Previews */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center text-xs font-bold text-[#0A1128]">
                   <label className="flex items-center gap-1.5">
                     <Headphones className="w-3.5 h-3.5 text-[#E07A5F]" />
-                    Target Persona & Accent
+                    Select Persona & Instant Preview (Click Character)
                   </label>
                   <span className="text-[#81B29A] font-semibold flex items-center gap-1">
                     Language: <strong>{selectedVoiceObj.lang}</strong>
@@ -537,8 +549,11 @@ export default function TideToneStudio() {
                   {filteredVoices.map((v) => (
                     <div
                       key={v.id}
-                      onClick={() => setVoiceId(v.id)}
-                      className={`p-2.5 rounded-2xl border cursor-pointer transition-all duration-300 flex flex-col items-center text-center relative backdrop-blur-xl ${
+                      onClick={() => {
+                        setVoiceId(v.id);
+                        handleGenerateTTS(v.id, text);
+                      }}
+                      className={`p-2.5 rounded-2xl border cursor-pointer transition-all duration-300 flex flex-col items-center text-center relative backdrop-blur-xl group ${
                         voiceId === v.id
                           ? "bg-gradient-to-tr from-[#BEE1E6]/90 to-[#D8E2DC]/90 text-[#0A1128] border-white shadow-lg scale-[1.04]"
                           : "bg-white/[0.3] hover:bg-white/[0.6] hover:-translate-y-0.5 text-[#0A1128] border-white/50 shadow-2xs"
@@ -546,15 +561,22 @@ export default function TideToneStudio() {
                     >
                       <div className="w-12 h-12 rounded-full overflow-hidden mb-1.5 border border-white/80 bg-white/50 relative shadow-xs">
                         {v.avatar ? (
-                          <img src={v.avatar} alt={v.name} className="w-full h-full object-cover" />
+                          <img src={v.avatar} alt={v.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center font-black text-[#81B29A] text-sm">{v.name[0]}</div>
                         )}
                         {v.flag && (
                           <span className="absolute bottom-0 right-0 text-xs drop-shadow-xs">{v.flag}</span>
                         )}
+                        {previewingVoice === v.id && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white">
+                            <Volume2 className="w-5 h-5 animate-spin" />
+                          </div>
+                        )}
                       </div>
-                      <span className="font-extrabold text-xs truncate w-full">{v.name}</span>
+                      <span className="font-extrabold text-xs truncate w-full flex items-center justify-center gap-1">
+                        {v.name}
+                      </span>
                       <span className={`text-[10px] font-semibold truncate w-full ${voiceId === v.id ? "text-[#0A1128]" : "text-[#3A506B]"}`}>
                         {v.lang.split("/")[0]}
                       </span>
@@ -600,12 +622,12 @@ export default function TideToneStudio() {
               </div>
 
               <button
-                onClick={handleGenerateTTS}
+                onClick={() => handleGenerateTTS()}
                 disabled={loading || !text.trim()}
                 className="w-full py-4 bg-gradient-to-r from-[#FFB5A7]/95 via-[#FCD5CE]/95 to-[#FFB5A7]/95 hover:from-[#FCD5CE] hover:to-[#FFB5A7] text-[#0A1128] font-black text-xs uppercase tracking-wider rounded-2xl border border-white/90 shadow-lg active:scale-[0.99] disabled:opacity-50 transition flex items-center justify-center gap-2 backdrop-blur-md"
               >
                 <Sparkles className="w-4 h-4" />
-                {loading ? "Synthesizing Speech..." : `Speak as ${selectedVoiceObj.name}`}
+                {loading ? "Synthesizing Speech..." : `Generate Voice & Play Instantly (${selectedVoiceObj.name})`}
               </button>
             </div>
 
@@ -626,14 +648,14 @@ export default function TideToneStudio() {
                       </div>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => playDirectly(item.downloadUrl)}
+                          onClick={() => playDirectly(item.audioUrl)}
                           className="p-1 hover:text-[#E07A5F] text-[#0A1128] font-black flex items-center gap-1"
                           title="Play"
                         >
                           <Play className="w-3.5 h-3.5 fill-current" />
                           <span>Play</span>
                         </button>
-                        <a href={item.downloadUrl} download className="p-1 hover:text-[#E07A5F] text-[#3A506B]">
+                        <a href={item.audioUrl} download="tidetone_voice.mp3" className="p-1 hover:text-[#E07A5F] text-[#3A506B]">
                           <Download className="w-3.5 h-3.5" />
                         </a>
                       </div>

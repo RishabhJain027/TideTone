@@ -1,4 +1,4 @@
-import os, sys, io, uuid, json, math, struct, asyncio, numpy as np
+import os, sys, io, uuid, json, math, struct, asyncio, base64, numpy as np
 from pathlib import Path
 from typing import Optional, List, Dict
 
@@ -28,7 +28,7 @@ try:
 except ImportError:
     TRANSLATOR_AVAILABLE = False
 
-app = FastAPI(title="TideTone Multilingual Studio", version="3.9.1")
+app = FastAPI(title="TideTone Multilingual Studio", version="4.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -42,18 +42,18 @@ USERS_DIR = STORAGE_DIR / "users"
 USERS_DIR.mkdir(parents=True, exist_ok=True)
 
 VOICE_CATALOG = [
-    {"id": "female_aria", "name": "Aria", "persona": "Female", "lang": "English (US)", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/aria.jpg", "flag": "🇺🇸", "desc": "Silky, warm & captivating broadcast host", "tts_voice": "en-US-AvaNeural", "rate_mod": "-3%", "pitch_mod": "-1Hz"},
-    {"id": "female_ankita", "name": "Ankita", "persona": "Female", "lang": "Hindi (हिंदी)", "target_lang": "hi", "mymemory_lang": "hi-IN", "avatar": "/avatars/ankita.jpg", "flag": "🇮🇳", "desc": "Gentle, expressive Indian narrator", "tts_voice": "hi-IN-SwaraNeural", "rate_mod": "-4%", "pitch_mod": "-1Hz"},
+    {"id": "female_aria", "name": "Aria", "persona": "Female", "lang": "English (US)", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/aria.jpg", "flag": "🇺🇸", "desc": "Silky, warm broadcast host", "tts_voice": "en-US-AvaNeural", "rate_mod": "-3%", "pitch_mod": "-1Hz"},
+    {"id": "female_ankita", "name": "Ankita", "persona": "Female", "lang": "Hindi (हिंदी)", "target_lang": "hi", "mymemory_lang": "hi-IN", "avatar": "/avatars/ankita.jpg", "flag": "🇮🇳", "desc": "Gentle Indian narrator", "tts_voice": "hi-IN-SwaraNeural", "rate_mod": "-4%", "pitch_mod": "-1Hz"},
     {"id": "female_sonia", "name": "Sonia", "persona": "Female", "lang": "English (UK)", "target_lang": "en", "mymemory_lang": "en-GB", "avatar": "/avatars/sonia.jpg", "flag": "🇬🇧", "desc": "Sophisticated British studio voice", "tts_voice": "en-GB-SoniaNeural", "rate_mod": "-4%", "pitch_mod": "-1Hz"},
-    {"id": "male_guy", "name": "Guy", "persona": "Male", "lang": "English (US)", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/guy.jpg", "flag": "🇺🇸", "desc": "Crisp dynamic cinematic narrator", "tts_voice": "en-US-GuyNeural"},
+    {"id": "male_guy", "name": "Guy", "persona": "Male", "lang": "English (US)", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/guy.jpg", "flag": "🇺🇸", "desc": "Dynamic cinematic narrator", "tts_voice": "en-US-GuyNeural"},
     {"id": "male_prabhat", "name": "Prabhat", "persona": "Male", "lang": "English (India)", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/prabhat.jpg", "flag": "🇮🇳", "desc": "Indian English storyteller", "tts_voice": "en-IN-PrabhatNeural"},
     {"id": "male_ryan", "name": "Ryan", "persona": "Male", "lang": "English (UK)", "target_lang": "en", "mymemory_lang": "en-GB", "avatar": "/avatars/ryan.jpg", "flag": "🇬🇧", "desc": "Deep BBC documentary voice", "tts_voice": "en-GB-RyanNeural"},
     {"id": "child_ana", "name": "Ana", "persona": "Child", "lang": "English (US)", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/ana.jpg", "flag": "🌟", "desc": "Bright, cheerful & playful kid", "tts_voice": "en-US-AnaNeural"},
-    {"id": "alien_zorg", "name": "Zorg", "persona": "Alien", "lang": "Cosmic Entity", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/alien.jpg", "flag": "🛸", "desc": "Galactic harmonic space traveler", "tts_voice": "en-US-ChristopherNeural", "pitch_mod": "+12Hz", "rate_mod": "-10%"},
+    {"id": "alien_zorg", "name": "Zorg", "persona": "Alien", "lang": "Cosmic Entity", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/alien.jpg", "flag": "🛸", "desc": "Galactic space traveler", "tts_voice": "en-US-ChristopherNeural", "pitch_mod": "+12Hz", "rate_mod": "-10%"},
     {"id": "cartoon_chirp", "name": "Chirp", "persona": "Cartoon", "lang": "Comic Animation", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/cartoon.jpg", "flag": "🎨", "desc": "Animated comic character", "tts_voice": "en-US-JennyNeural", "pitch_mod": "+35Hz", "rate_mod": "+25%"},
     {"id": "hindi_madhur", "name": "Madhur", "persona": "Male", "lang": "Hindi (हिंदी)", "target_lang": "hi", "mymemory_lang": "hi-IN", "avatar": "/avatars/madhur.jpg", "flag": "🇮🇳", "desc": "Deep Indian Hindi voice", "tts_voice": "hi-IN-MadhurNeural"},
-    {"id": "japanese_nanami", "name": "Nanami", "persona": "Female", "lang": "Japanese (日本語)", "target_lang": "ja", "mymemory_lang": "ja-JP", "avatar": "/avatars/nanami.jpg", "flag": "🇯🇵", "desc": "Silky, gentle Tokyo Japanese voice", "tts_voice": "ja-JP-NanamiNeural", "rate_mod": "-4%"},
-    {"id": "spanish_elvira", "name": "Elvira", "persona": "Female", "lang": "Spanish (Español)", "target_lang": "es", "mymemory_lang": "es-ES", "avatar": "/avatars/elvira.jpg", "flag": "🇪🇸", "desc": "Passionate, warm Castilian Spanish", "tts_voice": "es-ES-ElviraNeural", "rate_mod": "-3%"},
+    {"id": "japanese_nanami", "name": "Nanami", "persona": "Female", "lang": "Japanese (日本語)", "target_lang": "ja", "mymemory_lang": "ja-JP", "avatar": "/avatars/nanami.jpg", "flag": "🇯🇵", "desc": "Gentle Tokyo Japanese voice", "tts_voice": "ja-JP-NanamiNeural", "rate_mod": "-4%"},
+    {"id": "spanish_elvira", "name": "Elvira", "persona": "Female", "lang": "Spanish (Español)", "target_lang": "es", "mymemory_lang": "es-ES", "avatar": "/avatars/elvira.jpg", "flag": "🇪🇸", "desc": "Warm Castilian Spanish", "tts_voice": "es-ES-ElviraNeural", "rate_mod": "-3%"},
     {"id": "french_denise", "name": "Denise", "persona": "Female", "lang": "French (Français)", "target_lang": "fr", "mymemory_lang": "fr-FR", "avatar": "/avatars/denise.jpg", "flag": "🇫🇷", "desc": "Chic Parisian French", "tts_voice": "fr-FR-DeniseNeural", "rate_mod": "-4%"},
     {"id": "german_katja", "name": "Katja", "persona": "Female", "lang": "German (Deutsch)", "target_lang": "de", "mymemory_lang": "de-DE", "avatar": "/avatars/katja.jpg", "flag": "🇩🇪", "desc": "Smooth Berlin German voice", "tts_voice": "de-DE-KatjaNeural", "rate_mod": "-3%"},
 ]
@@ -94,7 +94,7 @@ async def health_check():
     return {
         "status": "healthy",
         "app": "TideTone Multilingual Studio",
-        "version": "3.9.1",
+        "version": "4.0.0",
         "storage_root": str(USERS_DIR),
         "translator": TRANSLATOR_AVAILABLE,
         "edge_tts": EDGE_TTS_AVAILABLE
@@ -166,8 +166,12 @@ async def generate_speech(
             except Exception:
                 saved_successfully = False
 
-        if not saved_successfully:
+        if not saved_successfully or not output_file.exists():
             raise Exception("Unable to synthesize audio on server")
+
+        with open(output_file, "rb") as f:
+            audio_bytes = f.read()
+            b64_audio = f"data:audio/mp3;base64,{base64.b64encode(audio_bytes).decode('utf-8')}"
 
         return {
             "success": True,
@@ -175,6 +179,7 @@ async def generate_speech(
             "voice_id": voice_id,
             "spoken_text": spoken_text,
             "target_lang": target_lang,
+            "audio_base64": b64_audio,
             "download_url": f"/api/audio/download/{session_id}/{job_id}",
             "stream_url": f"/api/audio/stream/{session_id}/{job_id}"
         }
