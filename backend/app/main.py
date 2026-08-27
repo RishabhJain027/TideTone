@@ -28,7 +28,7 @@ try:
 except ImportError:
     TRANSLATOR_AVAILABLE = False
 
-app = FastAPI(title="TideTone Multilingual Studio", version="3.9.0")
+app = FastAPI(title="TideTone Multilingual Studio", version="3.9.1")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -46,12 +46,12 @@ VOICE_CATALOG = [
     {"id": "female_ankita", "name": "Ankita", "persona": "Female", "lang": "Hindi (हिंदी)", "target_lang": "hi", "mymemory_lang": "hi-IN", "avatar": "/avatars/ankita.jpg", "flag": "🇮🇳", "desc": "Gentle, expressive Indian narrator", "tts_voice": "hi-IN-SwaraNeural", "rate_mod": "-4%", "pitch_mod": "-1Hz"},
     {"id": "female_sonia", "name": "Sonia", "persona": "Female", "lang": "English (UK)", "target_lang": "en", "mymemory_lang": "en-GB", "avatar": "/avatars/sonia.jpg", "flag": "🇬🇧", "desc": "Sophisticated British studio voice", "tts_voice": "en-GB-SoniaNeural", "rate_mod": "-4%", "pitch_mod": "-1Hz"},
     {"id": "male_guy", "name": "Guy", "persona": "Male", "lang": "English (US)", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/guy.jpg", "flag": "🇺🇸", "desc": "Crisp dynamic cinematic narrator", "tts_voice": "en-US-GuyNeural"},
-    {"id": "male_prabhat", "name": "Prabhat", "persona": "Male", "lang": "Hindi / English", "target_lang": "hi", "mymemory_lang": "hi-IN", "avatar": "/avatars/prabhat.jpg", "flag": "🇮🇳", "desc": "Indian storyteller", "tts_voice": "en-IN-PrabhatNeural"},
+    {"id": "male_prabhat", "name": "Prabhat", "persona": "Male", "lang": "English (India)", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/prabhat.jpg", "flag": "🇮🇳", "desc": "Indian English storyteller", "tts_voice": "en-IN-PrabhatNeural"},
     {"id": "male_ryan", "name": "Ryan", "persona": "Male", "lang": "English (UK)", "target_lang": "en", "mymemory_lang": "en-GB", "avatar": "/avatars/ryan.jpg", "flag": "🇬🇧", "desc": "Deep BBC documentary voice", "tts_voice": "en-GB-RyanNeural"},
     {"id": "child_ana", "name": "Ana", "persona": "Child", "lang": "English (US)", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/ana.jpg", "flag": "🌟", "desc": "Bright, cheerful & playful kid", "tts_voice": "en-US-AnaNeural"},
     {"id": "alien_zorg", "name": "Zorg", "persona": "Alien", "lang": "Cosmic Entity", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/alien.jpg", "flag": "🛸", "desc": "Galactic harmonic space traveler", "tts_voice": "en-US-ChristopherNeural", "pitch_mod": "+12Hz", "rate_mod": "-10%"},
     {"id": "cartoon_chirp", "name": "Chirp", "persona": "Cartoon", "lang": "Comic Animation", "target_lang": "en", "mymemory_lang": "en-US", "avatar": "/avatars/cartoon.jpg", "flag": "🎨", "desc": "Animated comic character", "tts_voice": "en-US-JennyNeural", "pitch_mod": "+35Hz", "rate_mod": "+25%"},
-    {"id": "hindi_madhur", "name": "Madhur", "persona": "Male", "lang": "Hindi (हिंदी)", "target_lang": "hi", "mymemory_lang": "hi-IN", "avatar": "/avatars/madhur.jpg", "flag": "🇮🇳", "desc": "Deep Indian voice", "tts_voice": "hi-IN-MadhurNeural"},
+    {"id": "hindi_madhur", "name": "Madhur", "persona": "Male", "lang": "Hindi (हिंदी)", "target_lang": "hi", "mymemory_lang": "hi-IN", "avatar": "/avatars/madhur.jpg", "flag": "🇮🇳", "desc": "Deep Indian Hindi voice", "tts_voice": "hi-IN-MadhurNeural"},
     {"id": "japanese_nanami", "name": "Nanami", "persona": "Female", "lang": "Japanese (日本語)", "target_lang": "ja", "mymemory_lang": "ja-JP", "avatar": "/avatars/nanami.jpg", "flag": "🇯🇵", "desc": "Silky, gentle Tokyo Japanese voice", "tts_voice": "ja-JP-NanamiNeural", "rate_mod": "-4%"},
     {"id": "spanish_elvira", "name": "Elvira", "persona": "Female", "lang": "Spanish (Español)", "target_lang": "es", "mymemory_lang": "es-ES", "avatar": "/avatars/elvira.jpg", "flag": "🇪🇸", "desc": "Passionate, warm Castilian Spanish", "tts_voice": "es-ES-ElviraNeural", "rate_mod": "-3%"},
     {"id": "french_denise", "name": "Denise", "persona": "Female", "lang": "French (Français)", "target_lang": "fr", "mymemory_lang": "fr-FR", "avatar": "/avatars/denise.jpg", "flag": "🇫🇷", "desc": "Chic Parisian French", "tts_voice": "fr-FR-DeniseNeural", "rate_mod": "-4%"},
@@ -72,7 +72,6 @@ def robust_translate(text: str, target_lang: str, mymemory_lang: str) -> str:
 
     cleaned = text.strip()
     if TRANSLATOR_AVAILABLE:
-        # Tier 1: MyMemoryTranslator
         try:
             res = MyMemoryTranslator(source='en-US', target=mymemory_lang).translate(cleaned)
             if res and len(res.strip()) > 0 and not res.startswith("MYMEMORY WARNING"):
@@ -80,7 +79,6 @@ def robust_translate(text: str, target_lang: str, mymemory_lang: str) -> str:
         except Exception:
             pass
 
-        # Tier 2: GoogleTranslator
         try:
             res = GoogleTranslator(source='auto', target=target_lang).translate(cleaned)
             if res and len(res.strip()) > 0:
@@ -96,7 +94,7 @@ async def health_check():
     return {
         "status": "healthy",
         "app": "TideTone Multilingual Studio",
-        "version": "3.9.0",
+        "version": "3.9.1",
         "storage_root": str(USERS_DIR),
         "translator": TRANSLATOR_AVAILABLE,
         "edge_tts": EDGE_TTS_AVAILABLE

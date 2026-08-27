@@ -68,12 +68,12 @@ export default function TideToneStudio() {
     { id: "female_ankita", name: "Ankita", persona: "Female", lang: "Hindi (हिंदी)", target_lang: "hi", avatar: "/avatars/ankita.jpg", flag: "🇮🇳", desc: "Gentle, expressive Indian narrator" },
     { id: "female_sonia", name: "Sonia", persona: "Female", lang: "English (UK)", target_lang: "en", avatar: "/avatars/sonia.jpg", flag: "🇬🇧", desc: "Sophisticated British studio voice" },
     { id: "male_guy", name: "Guy", persona: "Male", lang: "English (US)", target_lang: "en", avatar: "/avatars/guy.jpg", flag: "🇺🇸", desc: "Crisp dynamic cinematic narrator" },
-    { id: "male_prabhat", name: "Prabhat", persona: "Male", lang: "Hindi / English", target_lang: "hi", avatar: "/avatars/prabhat.jpg", flag: "🇮🇳", desc: "Indian storyteller" },
+    { id: "male_prabhat", name: "Prabhat", persona: "Male", lang: "English (India)", target_lang: "en", avatar: "/avatars/prabhat.jpg", flag: "🇮🇳", desc: "Indian English storyteller" },
     { id: "male_ryan", name: "Ryan", persona: "Male", lang: "English (UK)", target_lang: "en", avatar: "/avatars/ryan.jpg", flag: "🇬🇧", desc: "Deep BBC documentary voice" },
     { id: "child_ana", name: "Ana", persona: "Child", lang: "English (US)", target_lang: "en", avatar: "/avatars/ana.jpg", flag: "🌟", desc: "Bright, cheerful & playful kid" },
     { id: "alien_zorg", name: "Zorg", persona: "Alien", lang: "Cosmic Entity", target_lang: "en", avatar: "/avatars/alien.jpg", flag: "🛸", desc: "Galactic harmonic space traveler" },
     { id: "cartoon_chirp", name: "Chirp", persona: "Cartoon", lang: "Comic Animation", target_lang: "en", avatar: "/avatars/cartoon.jpg", flag: "🎨", desc: "Animated comic character" },
-    { id: "hindi_madhur", name: "Madhur", persona: "Male", lang: "Hindi (हिंदी)", target_lang: "hi", avatar: "/avatars/madhur.jpg", flag: "🇮🇳", desc: "Deep Indian voice" },
+    { id: "hindi_madhur", name: "Madhur", persona: "Male", lang: "Hindi (हिंदी)", target_lang: "hi", avatar: "/avatars/madhur.jpg", flag: "🇮🇳", desc: "Deep Indian Hindi voice" },
     { id: "japanese_nanami", name: "Nanami", persona: "Female", lang: "Japanese (日本語)", target_lang: "ja", avatar: "/avatars/nanami.jpg", flag: "🇯🇵", desc: "Silky, gentle Tokyo Japanese voice" },
     { id: "spanish_elvira", name: "Elvira", persona: "Female", lang: "Spanish (Español)", target_lang: "es", avatar: "/avatars/elvira.jpg", flag: "🇪🇸", desc: "Passionate, warm Castilian Spanish" },
     { id: "french_denise", "name": "Denise", persona: "Female", lang: "French (Français)", target_lang: "fr", avatar: "/avatars/denise.jpg", flag: "🇫🇷", desc: "Chic Parisian French" },
@@ -166,7 +166,7 @@ export default function TideToneStudio() {
   const handleGenerateTTS = async () => {
     if (!text.trim()) return;
     setLoading(true);
-    setStatusMessage("Translating and synthesizing speech in character's native language...");
+    setStatusMessage("Synthesizing narration...");
 
     try {
       const fd = new FormData();
@@ -478,7 +478,7 @@ export default function TideToneStudio() {
                 <div className="flex justify-between items-center text-xs font-bold text-[#0A1128]">
                   <label className="flex items-center gap-1.5">
                     <Music className="w-3.5 h-3.5 text-[#E07A5F]" />
-                    Narration Script (Any Language)
+                    Narration Script
                   </label>
                   <span className="text-[#3A506B] font-mono">{text.length} chars</span>
                 </div>
@@ -511,10 +511,10 @@ export default function TideToneStudio() {
                 <div className="flex justify-between items-center text-xs font-bold text-[#0A1128]">
                   <label className="flex items-center gap-1.5">
                     <Headphones className="w-3.5 h-3.5 text-[#E07A5F]" />
-                    Target Persona & Target Language
+                    Target Persona & Accent
                   </label>
                   <span className="text-[#81B29A] font-semibold flex items-center gap-1">
-                    Auto-Speaks: <strong>{selectedVoiceObj.lang}</strong>
+                    Language: <strong>{selectedVoiceObj.lang}</strong>
                   </span>
                 </div>
 
@@ -590,7 +590,7 @@ export default function TideToneStudio() {
                 className="w-full py-4 bg-gradient-to-r from-[#FFB5A7]/95 via-[#FCD5CE]/95 to-[#FFB5A7]/95 hover:from-[#FCD5CE] hover:to-[#FFB5A7] text-[#0A1128] font-black text-xs uppercase tracking-wider rounded-2xl border border-white/90 shadow-lg active:scale-[0.99] disabled:opacity-50 transition flex items-center justify-center gap-2 backdrop-blur-md"
               >
                 <Sparkles className="w-4 h-4" />
-                {loading ? "Translating & Synthesizing Speech..." : `Speak in ${selectedVoiceObj.lang.split("/")[0]}`}
+                {loading ? "Synthesizing Speech..." : `Speak as ${selectedVoiceObj.name}`}
               </button>
             </div>
 
