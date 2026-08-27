@@ -28,7 +28,7 @@ import SiriVisualizer from "@/components/SiriVisualizer";
 import BeachDroneBackground from "@/components/BeachDroneBackground";
 import TideToneLogo from "@/components/TideToneLogo";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://appliances-exotic-held-literature.trycloudflare.com";
 
 interface VoiceOption {
   id: string;
@@ -288,7 +288,7 @@ export default function TideToneStudio() {
 
             <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white/[0.35] backdrop-blur-xl rounded-2xl border border-white/60 text-xs font-bold text-[#0A1128] shadow-xs">
               <span className={`w-2.5 h-2.5 rounded-full ${backendHealthy ? "bg-[#81B29A] animate-pulse" : "bg-[#F4A261]"}`} />
-              <span>{backendHealthy ? "Server Online" : "Client Engine"}</span>
+              <span>{backendHealthy ? "Cloud Backend Online" : "Connecting..."}</span>
               <button onClick={() => { checkHealth(); fetchVoices(); }} className="hover:text-[#81B29A] ml-1">
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
