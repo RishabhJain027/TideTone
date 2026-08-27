@@ -28,8 +28,6 @@ import SiriVisualizer from "@/components/SiriVisualizer";
 import BeachDroneBackground from "@/components/BeachDroneBackground";
 import TideToneLogo from "@/components/TideToneLogo";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://appliances-exotic-held-literature.trycloudflare.com";
-
 interface VoiceOption {
   id: string;
   name: string;
@@ -60,6 +58,7 @@ export default function TideToneStudio() {
   const [pitch, setPitch] = useState<number>(0.0);
   const [autoTranslate, setAutoTranslate] = useState<boolean>(true);
   const [lastSpokenText, setLastSpokenText] = useState<string | null>(null);
+  const [apiBase, setApiBase] = useState<string>("http://localhost:8000");
 
   const [sessionId, setSessionId] = useState<string>("user_default");
 
@@ -101,31 +100,34 @@ export default function TideToneStudio() {
       localStorage.setItem("tidetone_session_id", sid);
     }
     setSessionId(sid);
-    checkHealth();
-    fetchVoices();
-  }, []);
 
-  const checkHealth = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/health`);
-      if (res.ok) setBackendHealthy(true);
-      else setBackendHealthy(false);
-    } catch {
-      setBackendHealthy(false);
-    }
-  };
+    const checkUrl = async () => {
+      const candidates = [
+        "http://localhost:8000",
+        process.env.NEXT_PUBLIC_API_URL,
+        "https://appliances-exotic-held-literature.trycloudflare.com"
+      ].filter(Boolean) as string[];
 
-  const fetchVoices = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/voices`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.prebuilt) setVoices(data.prebuilt);
+      for (const base of candidates) {
+        try {
+          const res = await fetch(`${base}/api/health`);
+          if (res.ok) {
+            setApiBase(base);
+            setBackendHealthy(true);
+            const vRes = await fetch(`${base}/api/voices`);
+            if (vRes.ok) {
+              const vData = await vRes.json();
+              if (vData.prebuilt) setVoices(vData.prebuilt);
+            }
+            return;
+          }
+        } catch {}
       }
-    } catch (e) {
-      console.warn("Using offline defaults");
-    }
-  };
+      setBackendHealthy(false);
+    };
+
+    checkUrl();
+  }, []);
 
   const setupWebAudio = () => {
     if (!audioRef.current) return;
@@ -166,7 +168,7 @@ export default function TideToneStudio() {
   const handleGenerateTTS = async () => {
     if (!text.trim()) return;
     setLoading(true);
-    setStatusMessage("Synthesizing narration...");
+    setStatusMessage("Synthesizing speech...");
 
     try {
       const fd = new FormData();
@@ -177,7 +179,7 @@ export default function TideToneStudio() {
       fd.append("session_id", sessionId);
       fd.append("auto_translate", autoTranslate.toString());
 
-      const res = await fetch(`${API_BASE}/api/tts/generate`, {
+      const res = await fetch(`${apiBase}/api/tts/generate`, {
         method: "POST",
         body: fd,
       });
@@ -185,7 +187,7 @@ export default function TideToneStudio() {
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
-          const fullUrl = data.download_url.startsWith("http") ? data.download_url : `${API_BASE}${data.download_url}`;
+          const fullUrl = data.download_url.startsWith("http") ? data.download_url : `${apiBase}${data.download_url}`;
           const currentVoice = voices.find((v) => v.id === voiceId);
           const currentVoiceName = currentVoice?.name || "Aria";
 
@@ -275,7 +277,7 @@ export default function TideToneStudio() {
                 </span>
               </div>
               <p className="text-xs text-[#3A506B] font-semibold">
-                Auto-Translating Speech Synthesis • 14 Custom Avatars • Liquid Glassmorphism
+                Neural Speech Synthesis • 14 Custom Avatars • Liquid Glassmorphism
               </p>
             </div>
           </div>
@@ -288,8 +290,8 @@ export default function TideToneStudio() {
 
             <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white/[0.35] backdrop-blur-xl rounded-2xl border border-white/60 text-xs font-bold text-[#0A1128] shadow-xs">
               <span className={`w-2.5 h-2.5 rounded-full ${backendHealthy ? "bg-[#81B29A] animate-pulse" : "bg-[#F4A261]"}`} />
-              <span>{backendHealthy ? "Cloud Backend Online" : "Connecting..."}</span>
-              <button onClick={() => { checkHealth(); fetchVoices(); }} className="hover:text-[#81B29A] ml-1">
+              <span>{backendHealthy ? "Server Online" : "Connecting..."}</span>
+              <button onClick={() => window.location.reload()} className="hover:text-[#81B29A] ml-1">
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -343,7 +345,7 @@ export default function TideToneStudio() {
               </div>
             )}
 
-            {/* Translucent Player Bar (Mobile Responsive Layout) */}
+            {/* Translucent Player Bar with Prominent Download Button */}
             <div className="w-full mt-4 bg-white/[0.35] backdrop-blur-xl border border-white/60 rounded-2xl p-4 space-y-3 z-10 shadow-xs">
               <div className="flex items-center justify-between text-xs font-mono font-bold text-[#0A1128]">
                 <span>
@@ -371,49 +373,58 @@ export default function TideToneStudio() {
                 />
               </div>
 
-              {/* Playback Controls & Volume Slider */}
-              <div className="flex flex-col gap-2.5 pt-1 w-full">
-                <div className="flex items-center gap-2 w-full">
-                  <button
-                    onClick={togglePlayback}
-                    className="flex-1 py-3 bg-gradient-to-r from-[#BEE1E6]/90 to-[#98D8C8]/90 hover:from-[#98D8C8] hover:to-[#BEE1E6] text-[#0A1128] font-extrabold text-xs uppercase tracking-wider rounded-2xl border border-white/80 shadow-md transition active:scale-[0.98] flex items-center justify-center gap-2 backdrop-blur-md"
-                  >
-                    {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    {isPlaying ? "Pause Speech" : "Play In-Browser Audio"}
-                  </button>
+              {/* Play / Pause & Volume Controls */}
+              <div className="flex items-center gap-2 pt-1 w-full">
+                <button
+                  onClick={togglePlayback}
+                  className="flex-1 py-3 bg-gradient-to-r from-[#BEE1E6]/90 to-[#98D8C8]/90 hover:from-[#98D8C8] hover:to-[#BEE1E6] text-[#0A1128] font-extrabold text-xs uppercase tracking-wider rounded-2xl border border-white/80 shadow-md transition active:scale-[0.98] flex items-center justify-center gap-2 backdrop-blur-md"
+                >
+                  {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  {isPlaying ? "Pause Speech" : "Play In-Browser Audio"}
+                </button>
 
-                  <div className="flex items-center gap-1.5 px-3 py-3 bg-white/[0.45] backdrop-blur-md rounded-2xl border border-white/60 shadow-xs shrink-0">
-                    {volume === 0 ? <VolumeX className="w-3.5 h-3.5 text-[#3A506B]" /> : <Volume2 className="w-3.5 h-3.5 text-[#81B29A]" />}
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.05"
-                      value={volume}
-                      onChange={(e) => {
-                        const v = parseFloat(e.target.value);
-                        setVolume(v);
-                        if (audioRef.current) audioRef.current.volume = v;
-                      }}
-                      className="w-14 sm:w-16 h-1.5 accent-[#81B29A]"
-                      title="Volume"
-                    />
-                  </div>
+                <div className="flex items-center gap-1.5 px-3 py-2.5 bg-white/[0.45] backdrop-blur-md rounded-2xl border border-white/60 shadow-xs shrink-0">
+                  {volume === 0 ? <VolumeX className="w-3.5 h-3.5 text-[#3A506B]" /> : <Volume2 className="w-3.5 h-3.5 text-[#81B29A]" />}
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={volume}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      setVolume(v);
+                      if (audioRef.current) audioRef.current.volume = v;
+                    }}
+                    className="w-14 sm:w-16 h-1.5 accent-[#81B29A]"
+                    title="Volume"
+                  />
                 </div>
 
-                {/* Mobile-Friendly Full-Width Download Button Below Controls */}
                 {audioUrl && (
                   <a
                     href={audioUrl}
                     download="tidetone_voice.mp3"
-                    className="w-full py-2.5 bg-white/[0.45] hover:bg-white/80 text-[#0A1128] font-extrabold text-xs rounded-2xl border border-white/60 shadow-xs transition flex items-center justify-center gap-1.5 backdrop-blur-md active:scale-[0.99]"
-                    title="Save audio file"
+                    className="px-3.5 py-3 bg-white/[0.6] hover:bg-white text-[#0A1128] font-extrabold text-xs rounded-2xl border border-white/80 shadow-xs transition flex items-center gap-1.5 backdrop-blur-md active:scale-95"
+                    title="Download audio file"
                   >
                     <Download className="w-4 h-4 text-[#E07A5F]" />
-                    <span>Download Audio File</span>
+                    <span className="hidden sm:inline">Download</span>
                   </a>
                 )}
               </div>
+
+              {/* Full-Width Mobile Download Link */}
+              {audioUrl && (
+                <a
+                  href={audioUrl}
+                  download="tidetone_voice.mp3"
+                  className="sm:hidden w-full py-2.5 bg-white/[0.5] hover:bg-white text-[#0A1128] font-extrabold text-xs rounded-xl border border-white/70 shadow-xs transition flex items-center justify-center gap-1.5 backdrop-blur-md mt-2"
+                >
+                  <Download className="w-4 h-4 text-[#E07A5F]" />
+                  <span>Download Audio</span>
+                </a>
+              )}
             </div>
 
             {/* Persona Categories Badges */}
@@ -636,7 +647,7 @@ export default function TideToneStudio() {
       </div>
 
       <footer className="max-w-7xl mx-auto w-full p-4 sm:px-8 mt-6 text-center text-xs text-[#3A506B] font-bold">
-        TideTone Multilingual Studio • Auto-Translating Speech Engine • Translucent Liquid Glassmorphism
+        TideTone Multilingual Studio • Neural Speech Synthesizer • Translucent Liquid Glassmorphism
       </footer>
     </div>
   );
