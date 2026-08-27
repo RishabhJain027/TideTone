@@ -343,7 +343,7 @@ export default function TideToneStudio() {
               </div>
             )}
 
-            {/* Translucent Player Bar */}
+            {/* Translucent Player Bar (Mobile Responsive Layout) */}
             <div className="w-full mt-4 bg-white/[0.35] backdrop-blur-xl border border-white/60 rounded-2xl p-4 space-y-3 z-10 shadow-xs">
               <div className="flex items-center justify-between text-xs font-mono font-bold text-[#0A1128]">
                 <span>
@@ -371,42 +371,46 @@ export default function TideToneStudio() {
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  onClick={togglePlayback}
-                  className="flex-1 py-3 bg-gradient-to-r from-[#BEE1E6]/90 to-[#98D8C8]/90 hover:from-[#98D8C8] hover:to-[#BEE1E6] text-[#0A1128] font-extrabold text-xs uppercase tracking-wider rounded-2xl border border-white/80 shadow-md transition active:scale-[0.98] flex items-center justify-center gap-2 backdrop-blur-md"
-                >
-                  {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  {isPlaying ? "Pause Speech" : "Play In-Browser Audio"}
-                </button>
+              {/* Playback Controls & Volume Slider */}
+              <div className="flex flex-col gap-2.5 pt-1 w-full">
+                <div className="flex items-center gap-2 w-full">
+                  <button
+                    onClick={togglePlayback}
+                    className="flex-1 py-3 bg-gradient-to-r from-[#BEE1E6]/90 to-[#98D8C8]/90 hover:from-[#98D8C8] hover:to-[#BEE1E6] text-[#0A1128] font-extrabold text-xs uppercase tracking-wider rounded-2xl border border-white/80 shadow-md transition active:scale-[0.98] flex items-center justify-center gap-2 backdrop-blur-md"
+                  >
+                    {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    {isPlaying ? "Pause Speech" : "Play In-Browser Audio"}
+                  </button>
 
-                <div className="flex items-center gap-1.5 px-3 py-2 bg-white/[0.45] backdrop-blur-md rounded-2xl border border-white/60 shadow-xs">
-                  {volume === 0 ? <VolumeX className="w-3.5 h-3.5 text-[#3A506B]" /> : <Volume2 className="w-3.5 h-3.5 text-[#81B29A]" />}
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={volume}
-                    onChange={(e) => {
-                      const v = parseFloat(e.target.value);
-                      setVolume(v);
-                      if (audioRef.current) audioRef.current.volume = v;
-                    }}
-                    className="w-16 h-1.5 accent-[#81B29A]"
-                    title="Volume"
-                  />
+                  <div className="flex items-center gap-1.5 px-3 py-3 bg-white/[0.45] backdrop-blur-md rounded-2xl border border-white/60 shadow-xs shrink-0">
+                    {volume === 0 ? <VolumeX className="w-3.5 h-3.5 text-[#3A506B]" /> : <Volume2 className="w-3.5 h-3.5 text-[#81B29A]" />}
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={volume}
+                      onChange={(e) => {
+                        const v = parseFloat(e.target.value);
+                        setVolume(v);
+                        if (audioRef.current) audioRef.current.volume = v;
+                      }}
+                      className="w-14 sm:w-16 h-1.5 accent-[#81B29A]"
+                      title="Volume"
+                    />
+                  </div>
                 </div>
 
+                {/* Mobile-Friendly Full-Width Download Button Below Controls */}
                 {audioUrl && (
                   <a
                     href={audioUrl}
                     download="tidetone_voice.mp3"
-                    className="px-3.5 py-3 bg-white/[0.45] hover:bg-white/80 text-[#0A1128] font-extrabold text-xs rounded-2xl border border-white/60 shadow-xs transition flex items-center gap-1.5 backdrop-blur-md"
+                    className="w-full py-2.5 bg-white/[0.45] hover:bg-white/80 text-[#0A1128] font-extrabold text-xs rounded-2xl border border-white/60 shadow-xs transition flex items-center justify-center gap-1.5 backdrop-blur-md active:scale-[0.99]"
                     title="Save audio file"
                   >
                     <Download className="w-4 h-4 text-[#E07A5F]" />
-                    <span>Download</span>
+                    <span>Download Audio File</span>
                   </a>
                 )}
               </div>
